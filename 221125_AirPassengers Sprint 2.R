@@ -87,7 +87,8 @@ autoplot(TS) + geom_smooth(method = "lm") + labs(
   x = "Jaar",
   y = "Aantal passagiers",
   title = "Aantal passagiers per jaar",
-  subtitle = "Inclusief trendlijn") +
+  subtitle = "Inclusief trendlijn") 
+#### Ivan: heb de extra + verwijderd
 
   
 # Auto Arima
