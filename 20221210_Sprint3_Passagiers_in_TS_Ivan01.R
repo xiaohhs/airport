@@ -167,7 +167,7 @@ print (act_1jul19 - schat_1jul19)
 act_2jul19 <- as.numeric(Dagpax2  %>% 
                            filter (Actuele.datum.tijd == "2019-07-02") %>% 
                            select (PassagiersPerDag))
-print (act_2jul19 - schat_29aug)
+print (act_2jul19 - schat_29aug19)
 
 act_15jul19 <- as.numeric(Dagpax2  %>% 
                             filter (Actuele.datum.tijd == "2019-07-15") %>% 
@@ -192,24 +192,3 @@ print (act_29aug19 - schat_29aug19)
 
 
 #### Hieronder experimenten
-
-library(forecast)
-ggseasonplot(dp2, year.labels = TRUE, 
-             ylab = "Aantal passagiers (per duizend)",
-             main = "Seasonplot passagiers RTH-Airport")
-
-
-
-adf.test (dp2)   # nu p-value =0.01, dus stationarity(!), doordat ADF autocorrelation verwijdert
-#### Stationary test (Autocorrelation)
-
-# acf toont autocorrelation 
-#     acf -> correlation coefficient between lags of time series
-# pacf toont partial autocorrelation
-#     pacf -> correlation coeff adjusted for shorter lags
-
-
-# ETH pag 70
-acf(dp2, lag.max = 48, main = "Autocorrelation passagiers RTH-Airport") # significant boven betrbh interval
-pacf(dp2, lag.max = 48, main = "Partial autocorrelation passagiers RTH-Airport")
-  # exponentieel dalend; boven betrbh interval
