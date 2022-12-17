@@ -117,7 +117,7 @@ set.seed(12345)
 # Feed-forward neural networks with a single hidden layer and 
 #   lagged inputs for forecasting univariate time series.
 nnet <- nnetar(dp3, repeats = 2)
-
+ 
 
 
 # Forecast 62 dagen 
