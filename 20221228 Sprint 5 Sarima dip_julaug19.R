@@ -12,8 +12,9 @@ library(forecast)
 #================================================#
 # STAP 2 - INLADEN DATABESTAND
 
-setwd("C:/Users/jcklo/Documents/2021/Studie/Modules/Applied Big data")
-# setwd("C:/Users/Ivan/Documents/SynologyDrive/202108-THGS-BigData/202209-Applied BigData/_Repo-Airlines/airport")
+#setwd("C:/Users/jcklo/Documents/2021/Studie/Modules/Applied Big data")
+setwd("C:/Users/Ivan/Documents/SynologyDrive/202108-THGS-BigData/202209-Applied BigData/_Repo-Airlines/airport")
+
 
 Datasetruw  <- read.csv2("DataFiles/cleandataR.csv", stringsAsFactors = TRUE,
                          na.strings=c("", "NA"))
@@ -67,7 +68,7 @@ Dagpax_dip_EDA <- Dagpax_dip %>%
   mutate(Weekday = wday(Actuele.datum.tijd))
 
 # alles klopt qua schrikkeljaar en weekdagen tov datum
-
+Dagpax_dip_EDA
 #================================================#
 # STAP 3B - EDA VISUALS
 
@@ -87,7 +88,7 @@ pivot1_dip <- Dagpax_dip_EDA %>%
   summarise(PassagiersPerDag = sum(PassagiersPerDag, na.rm = TRUE))
 
 values_dip <- pivot1_dip[,3] 
-ts_dip <- ts(values_dip,start=c(2010,1),end=c(2019,8),frequency=12)
+ts_dip <- ts(values_dip,start=c(2010,1),frequency=12)
 ggseasonplot(ts_dip, year.labels = TRUE, 
              ylab = "Passagiers",
              main = "Passagiers per maand")
@@ -173,6 +174,7 @@ summary(my_arima_dip)
 #Training set 0.9679894 900.3668 652.2233 -3.624671 19.36542 0.6936216 0.2415086
 
 autoplot(my_arima_dip) 
+
 checkresiduals(my_arima_dip)
 
 #================================================#
@@ -186,6 +188,12 @@ forecast_dagpax_dip$mean
 
 # Forecast visual alleen laatste 5 jaar tonen (beter leesbaar)
 autoplot(forecast_dagpax_dip) + xlim(2015, 2020)
+
+#### Toevoeging Ivan: Data, Fitted en Forecast in 1 afbeelding
+autoplot(Dagpax.ts_diptrain, series = 'Data', xlab="Jaren", ylab="Aantal passagiers", main="Aantal passagiers 1-7-2010 t/m 31-8-21") + 
+  autolayer(fitted(forecast_dagpax_dip), series = 'Fitted') +
+  autolayer(forecast_dagpax_dip, series = 'Forecast') + xlim(2015, 2020)
+
 
 #================================================#
 # STAP 9 - VERSCHILLEN PER DAG
@@ -223,7 +231,8 @@ ggplot(Foutmarge_dip, aes(x = Actuele.datum.tijd, y = verschil, fill = Weekday))
   scale_y_continuous(labels = scales::comma) +
   labs(y = "verschil") +
   theme_bw() +
-  ggtitle("Gem.foutmarge pd")
+  ggtitle("Gem.foutmarge pd") +
+  geom_hline(yintercept=600)
 
 #####
 # Deze stap als laatste, want als je eerder library itsmr draait dan probelemen
