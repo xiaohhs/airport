@@ -7,6 +7,7 @@ library(nnet)
 
 # INLADEN DATABESTAND
 #setwd("C:/Users/jcklo/Documents/2021/Studie/Modules/Applied Big data")
+#setwd("C:/Users/xiao.peng/OneDrive - Stichting Hogeschool Utrecht/backup/xiao peng hu/MBA 2/Applied Big Data/airport")
  setwd("C:/Users/Ivan/Documents/SynologyDrive/202108-THGS-BigData/202209-Applied BigData/_Repo-Airlines/airport")
 
 Datasetruw  <- read.csv2("DataFiles/cleandataR.csv", stringsAsFactors = TRUE,
@@ -154,7 +155,7 @@ autoplot(pacf(Dagpax.ts14,plot=FALSE))+ labs(title="Correlogram Passagiers")
 
 
 #####################################################
-#### NeuralNet Sprint5, scenario startdata 1-1-2017 en 1-1-2014
+#### NeuralNet Sprint5, scenario startdata 1-1-2014 en 1-1-2017
 #####################################################
 # NNAR(p,P,k)
 #   Lagged values (p) used as inputs
@@ -169,118 +170,73 @@ autoplot(pacf(Dagpax.ts14,plot=FALSE))+ labs(title="Correlogram Passagiers")
 
 
 #########
-##Functie om nnetar aan te roepen met argumenten aantal repeats en aantal hidden layers
-## Resultaat scenario met data 1-1-2017 t/m 30-06-2019
+## Functie om nnetar aan te roepen met argumenten
+## aantal repeats, aantal hidden layers, time-serie 
+## Output:  parameters NNAR, gemiddelde afwijking, grafiek met forecast
 #########
-calc_nnet_17 <- function(reps = 1, hlayer = 1) {
-  RNGversion("3.5.2") #Zat typo in
+
+
+calc_nnet <- function(reps = 1, hlayer = 1, tms) {
+  RNGversion("3.5.2") 
   set.seed(12345)
   
-  nnet <- nnetar (Dagpax.ts17, repeats = reps, P = hlayer) 
+  nnet <- nnetar (tms, repeats = reps, P = hlayer) 
   nnetforecast <- forecast(nnet, h = 62, PI = T)  # PI = Prediction intervals
-  summary(nnetforecast)
-  autoplot(nnetforecast)
+  
+  #summary(nnetforecast)
+  plot(nnetforecast)  # autoplot werkt niet binnen functie, plot wel
   
   # Vergelijking van voorspelling Neuralnet met werkelijke waarde
   jul_aug_nnet <- round(as.data.frame(nnetforecast$mean))  #voorspellingen van nnet naar DF
   head(jul_aug_nnet)
   
-  jul_aug_pax <- as.data.frame(tail(Dagpax2, 62)[,2]) # OPM Ivan: aangepast van Dagpax_1710
-  #jul_aug_pax
+  jul_aug_pax <- as.data.frame(tail(Dagpax2, 62)[,2])   #Werkelijke waarde jul_aug_pax
   tmp <- cbind(jul_aug_pax, jul_aug_nnet, abs(jul_aug_pax - jul_aug_nnet))
-  #tmp
-  round (mean (tmp[,3]))
+  res <- round (mean (tmp[,3]))
+  
+  output <- paste(nnetforecast$method, "-> gemiddelde afwijking", res)
+  return(output) # Toont gebruikte parameters NNAR(p,P,k)[f]
 }
 
 
-calc_nnet_14 <- function(reps = 1, hlayer = 1, tms14) {
-  RNGversion("3.5.2") #Zat typo in
-  set.seed(12345)
-  
-  nnet <- nnetar (tms14, repeats = reps, P = hlayer) 
-  nnetforecast <- forecast(nnet, h = 62, PI = T)  # PI = Prediction intervals
-  summary(nnetforecast)
-  autoplot(nnetforecast)
-  
-  # Vergelijking van voorspelling Neuralnet met werkelijke waarde
-  jul_aug_nnet <- round(as.data.frame(nnetforecast$mean))  #voorspellingen van nnet naar DF
-  head(jul_aug_nnet)
-  
-  jul_aug_pax <- as.data.frame(tail(Dagpax2, 62)[,2]) # OPM Ivan: aangepast van Dagpax_1710
-  #jul_aug_pax
-  tmp <- cbind(jul_aug_pax, jul_aug_nnet, abs(jul_aug_pax - jul_aug_nnet))
-  #tmp
-  round (mean (tmp[,3]))
- }
+# Resultaat scenario met data 1-1-2014 t/m 30-06-2019
+calc_nnet(2,1,Dagpax.ts14)  # NNAR(28,1,15)[365] -> 843
+calc_nnet(5,1,Dagpax.ts14) # NNAR(28,1,15)[365] -> 925(!)
+calc_nnet(10,1,Dagpax.ts14) # NNAR(15,1,8)[365] -> 844 (!)
+calc_nnet(2,2, Dagpax.ts14) # NNAR(28,2,16)[365] -> 738
+calc_nnet(5,2,Dagpax.ts14) # NNAR(15,2,9)[365] -> 510 <--
+calc_nnet(10,2,Dagpax.ts14) # NNAR(15,2,9)[365] -> 594 (!)
+calc_nnet(2,3,Dagpax.ts14) # NNAR(15,8) -> 719
+calc_nnet(10,3,Dagpax.ts14) # NNAR(15,8) -> 673
 
 # Resultaat scenario met data 1-1-2017 t/m 30-06-2019
-calc_nnet_17(2)  # NNAR(15,1,8)[365] -> 800
-#calc_nnet_17(5) # NNAR(15,1,8)[365] -> 792
-#calc_nnet_17(10) # NNAR(15,1,8)[365] -> 778
-#calc_nnet_17(2,2) # NNAR(15,2,9)[365] -> 894
-#calc_nnet_17(5,2) # NNAR(15,2,9)[365] -> 706 <--
-#calc_nnet_17(10,2) # NNAR(15,2,9)[365] -> 796(!)
-#calc_nnet_17(2,3) # NNAR(15,8) -> 1056
-#calc_nnet_17(10,3) # NNAR(15,8) -> 787
+calc_nnet(2,1,Dagpax.ts17)  # NNAR(15,1,8)[365] -> 800
+calc_nnet(5,1,Dagpax.ts17) # NNAR(15,1,8)[365] -> 792
+calc_nnet(10,1,Dagpax.ts17) # NNAR(15,1,8)[365] -> 778
+calc_nnet(2,2,Dagpax.ts17) # NNAR(15,2,9)[365] -> 894
+calc_nnet(5,2,Dagpax.ts17) # NNAR(15,2,9)[365] -> 706 <--
+calc_nnet(10,2,Dagpax.ts17) # NNAR(15,2,9)[365] -> 796(!)
+calc_nnet(2,3,Dagpax.ts17) # NNAR(15,8) -> 1056
+calc_nnet(10,3,Dagpax.ts17) # NNAR(15,8) -> 787
 
 
-# Resultaat scenario met data 1-1-2014 t/m 30-06-2019
-calc_nnet_14(2)  # NNAR(28,1,15)[365] -> 843
-    RNGversion("3.5.2") #Zat typo in
-    set.seed(12345)
-    nnet <- nnetar (Dagpax.ts14, repeats = 2, P = 1) 
-    nnetforecast <- forecast(nnet, h = 62, PI = T)  # PI = Prediction intervals
-    autoplot(nnetforecast)
-
-calc_nnet_14(5) # NNAR(28,1,15)[365] -> 925(!)
-    RNGversion("3.5.2") #Zat typo in
-    set.seed(12345)
-    nnet <- nnetar (Dagpax.ts14, repeats = 5, P = 1) 
-    nnetforecast <- forecast(nnet, h = 62, PI = T)  # PI = Prediction intervals
-    autoplot(nnetforecast)
-
-calc_nnet_14(10) # NNAR(15,1,8)[365] -> 844 (!)
-    RNGversion("3.5.2") #Zat typo in
-    set.seed(12345)
-    nnet <- nnetar (Dagpax.ts14, repeats = 10, P = 1) 
-    nnetforecast <- forecast(nnet, h = 62, PI = T)  # PI = Prediction intervals
-    autoplot(nnetforecast)
-
-calc_nnet_14(2,2, Dagpax.ts14) # NNAR(28,2,16)[365] -> 738
-    RNGversion("3.5.2") #Zat typo in
-    set.seed(12345)
-    nnet <- nnetar (Dagpax.ts14, repeats = 2, P = 2) 
-    nnetforecast <- forecast(nnet, h = 62, PI = T)  # PI = Prediction intervals
-    autoplot(nnetforecast)
-
-calc_nnet_14(5,2) # NNAR(15,2,9)[365] -> 510 <--
-calc_nnet_14(10,2) # NNAR(15,2,9)[365] -> 594 (!)
-calc_nnet_14(2,3) # NNAR(15,8) -> 719
-calc_nnet_14(10,3) # NNAR(15,8) -> 673
-
-# Resultaat Sprint 4, met data 1-8-2003 t/m 30-06-2019
-#nnet <- nnetar(dp3, repeats = 2) # NNAR(29,1,16)[365] -> 506
-#nnet <- nnetar(dp3, repeats = 2, P=2) # NNAR(29,2,16)[365] -> 583(!)
-
-
-
-
-### Toevoeging Ivan: Data, Fitted en Forecast in 1 afbeelding
-### Warning: Removed 730 rows containing missing values (`geom_line()`). 
+### Data, Fitted en Forecast in 1 afbeelding; warnings genegeerd
+nnet <- nnetar (Dagpax.ts17, 2, P = 1) 
+nnetforecast <- forecast(nnet, h = 62, PI = T)  # PI = Prediction intervals
 autoplot(Dagpax.ts17, series = 'Data', 
          xlab="Jaren",
          ylab="Aantal passagiers", 
-         main="Aantal passagiers 1-1-2017 t/m 31-8-2019") + 
-  autolayer(fitted(nnetforecast), series = 'Fitted') +
-  autolayer(nnetforecast, series = 'Forecast') #+ xlim(2018, 2020)
+         main="Aantal passagiers 1-1-2017 t/m 31-8-2019 (werkelijk, model, voorspelling)",
+         color = 'blue') + 
+  autolayer(fitted(nnetforecast), series = 'Fitted',
+            color = 'purple') +
+  autolayer (nnetforecast, series = 'Forecast', color = 'darkgray') #+ xlim(2018, 2020)
 
 
-autoplot(Dagpax.ts14, series = 'Data', 
-         xlab="Jaren",
-         ylab="Aantal passagiers", 
-         main="Aantal passagiers 1-1-2014 t/m 31-8-2019") + 
-  autolayer(fitted(nnetforecast), series = 'Fitted') +
-  autolayer(nnetforecast, series = 'Forecast') #+ xlim(2018, 2020)
+
+# Resultaat Sprint 4, met data 1-8-2003 t/m 30-06-2019
+#calc_nnet(2,1,dp3) # NNAR(29,1,16)[365] -> 506 <--
+#calc_nnet(2,2,dp3) # NNAR(29,2,16)[365] -> 583(!)
 
 
 #######################################################################
@@ -290,8 +246,8 @@ autoplot(Dagpax.ts14, series = 'Data',
 ###     Selectie 2003-01-01 t/m 2019-06-30 -> 506 
 ###
 ###   Sprint 5: 
-###     Selectie 2017-01-01 t/m 2019-06-30 -> 706
 ###     Selectie 2014-01-01 t/m 2019-06-30 -> 510
+###     Selectie 2017-01-01 t/m 2019-06-30 -> 706
 ### 
 ###   Conclusie:
 ###     Meer historie meenemen, levert kleinere afwijking en betere voorspelling op.
