@@ -270,12 +270,12 @@ library(dygraphs)
 #data <- nnetforecast$x              # Raw data van forecast
 #lower <- nnetforecast$lower[,2]     # 95% betrouwbaarheidsinterval
 #upper <- nnetforecast$upper [,2]    # 95% betrouwbaarheidsinterval
-#pforecast <- nnetforecast$mean      # 60 dagen forecastperiode 
+pforecast <- nnetforecast$mean      # 60 dagen forecastperiode 
 
 #Zie ook https://rstudio.github.io/dygraphs/
 
-
 # Dygraph van 1 jan 2017 tm 30 jun 2019
+Dagpax_17datum <- Dagpax_17train$Actuele.datum.tijd
 data_xts<- xts(x= Dagpax_17train$PassagiersPerDag, frequency = 365,
                order.by = Dagpax_17datum)
 
